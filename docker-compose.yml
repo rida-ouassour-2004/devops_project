@@ -9,8 +9,7 @@ services:
       POSTGRES_USER: taskuser
       POSTGRES_PASSWORD: taskpassword
 
-    ports:
-      - "5432:5432"
+
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -21,7 +20,6 @@ services:
       retries: 5
 
   task-api:
-    build: .
     image: task-api:latest
     restart: unless-stopped
 
