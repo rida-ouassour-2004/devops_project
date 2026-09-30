@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: task-api-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: taskpassword
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U taskuser -d taskdb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  task-api:
+    build: .
+    image: task-api:latest
+    restart: unless-stopped
+
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/taskdb
+      DB_USERNAME: taskuser
+      DB_PASSWORD: taskpassword
+
+  nginx:
+    image: nginx:alpine
+    container_name: task_api_nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - task-api
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+volumes:
+   postgres_data:
